@@ -9,6 +9,7 @@ from datetime import datetime
 
 load_dotenv()
 MONGO_URI = os.environ.get("MONGO_URI")
+
 if MONGO_URI:
     connect(host=MONGO_URI)
 else:
