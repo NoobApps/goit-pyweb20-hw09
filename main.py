@@ -10,7 +10,7 @@ from datetime import datetime
 load_dotenv()
 MONGO_URI = os.environ.get("MONGO_URI")
 
-зif MONGO_URI:
+if MONGO_URI:
     connect(host=MONGO_URI)
 else:
     raise EnvironmentError("MONGO_URI environment variable not set. Cannot connect to MongoDB.")
@@ -32,7 +32,7 @@ class Quote(Document):
 
 
 class AuthorsSpider(scrapy.Spider):
-    name = 'authors_detailed'
+    name = 'authors'
     allowed_domains = ['quotes.toscrape.com']
     start_urls = ['http://quotes.toscrape.com']
     
@@ -51,8 +51,9 @@ class AuthorsSpider(scrapy.Spider):
 
     def parse(self, response):
         """Парсинг головної сторінки з цитатами"""
+        parsed_authors = []
         for quote in response.xpath("//div[@class='quote']"):
-            parsed_authors = []
+            
             author = quote.xpath(".//small[@class='author']/text()").get()
             if author not in parsed_authors:
             # Отримуємо відносне посилання на сторінку автора (лінк "(about)")
@@ -62,7 +63,8 @@ class AuthorsSpider(scrapy.Spider):
                 if author_url:
                     yield response.follow(
                         author_url,
-                        callback=self.parse_author
+                        callback=self.parse_author,
+                        cb_kwargs={'author': author}
                     )
 
         # Пагінація: перехід на наступну сторінку з цитатами
@@ -70,10 +72,10 @@ class AuthorsSpider(scrapy.Spider):
             if next_link:
                 yield response.follow(next_link, callback=self.parse)
 
-    def parse_author(self, response):
+    def parse_author(self, response,author):
         """Парсинг сторінки конкретного автора (about)"""
         author_info = {
-            "fullname" : response.xpath("//h3[@class='author-title']/text()").get(),
+            "fullname" :author,
             "born_date": response.xpath("//span[@class='author-born-date']/text()").get(),
             "born_location": response.xpath("//span[@class='author-born-location']/text()").get(),
             "description": response.xpath("//div[@class='author-description']/text()").get("").strip(),
