@@ -68,9 +68,9 @@ class AuthorsSpider(scrapy.Spider):
                     )
 
         # Пагінація: перехід на наступну сторінку з цитатами
-            next_link = response.xpath("//li[@class='next']/a/@href").get()
-            if next_link:
-                yield response.follow(next_link, callback=self.parse)
+        next_link = response.xpath("//li[@class='next']/a/@href").get()
+        if next_link:
+            yield response.follow(next_link, callback=self.parse)
 
     def parse_author(self, response,author):
         """Парсинг сторінки конкретного автора (about)"""
